@@ -134,6 +134,7 @@ def get_web_search_tool(config_file: str):
                        or (os.getenv(SEARCH_ENGINE_OVERRIDE_ENV, '')
                            or '')).strip().lower()
     if engine_override and engine_override in (SearchEngineType.EXA.value,
+                                               SearchEngineType.SERPER.value,
                                                SearchEngineType.SERPAPI.value,
                                                SearchEngineType.ARXIV.value):
         search_config['engine'] = engine_override
@@ -153,6 +154,13 @@ def get_web_search_tool(config_file: str):
             api_key=override_serp_key or search_config.get(
                 'serpapi_api_key', os.getenv('SERPAPI_API_KEY', None)),
             provider=search_config.get('provider', 'google').lower())
+    elif engine_name == SearchEngineType.SERPER.value:
+        from ms_agent.tools.search.serper import SerperSearch
+        return SerperSearch(
+            api_key=(local_env.get('SERPER_API_KEY')
+                     or search_config.get('serper_api_key')),
+            base_url=(local_env.get('SERPER_BASE_URL')
+                      or search_config.get('serper_base_url')))
     elif engine_name == SearchEngineType.ARXIV.value:
         return ArxivSearch()
     else:

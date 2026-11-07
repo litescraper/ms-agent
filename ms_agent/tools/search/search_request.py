@@ -182,6 +182,26 @@ class SerpApiSearchRequestGenerator(SearchRequestGenerator):
         return SerpApiSearchRequest(**search_request_d)
 
 
+class SerperSearchRequestGenerator(SerpApiSearchRequestGenerator):
+    """Generate general web discovery requests within the provider's limit."""
+
+    def get_args_template(self) -> str:
+        return '{"query": "xxx", "num_results": 5, "location": null}'
+
+    def get_json_schema(self, num_queries: int, is_strict: bool = True) -> Dict[str, Any]:
+        schema = super().get_json_schema(num_queries, is_strict)
+        schema['schema']['items']['properties']['num_results'].update(
+            minimum=1, maximum=10, description='Number of web results (1-10).')
+        return schema
+
+    def get_rewrite_prompt(self) -> str:
+        return super().get_rewrite_prompt().replace('最大25', '最大10')
+
+    def create_request(self, search_request_d: Dict[str, Any]) -> SearchRequest:
+        from ms_agent.tools.search.serper import SerperSearchRequest
+        return SerperSearchRequest(**search_request_d)
+
+
 class ArxivSearchRequestGenerator(SearchRequestGenerator):
 
     def get_args_template(self) -> str:
@@ -275,6 +295,8 @@ def get_search_request_generator(engine_type: SearchEngineType,
         return ExaSearchRequestGenerator(user_prompt)
     elif engine_type == SearchEngineType.SERPAPI:
         return SerpApiSearchRequestGenerator(user_prompt)
+    elif engine_type == SearchEngineType.SERPER:
+        return SerperSearchRequestGenerator(user_prompt)
     elif engine_type == SearchEngineType.ARXIV:
         return ArxivSearchRequestGenerator(user_prompt)
     else:

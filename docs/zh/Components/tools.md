@@ -139,6 +139,27 @@ tools:
 
 沙箱模式下，获取当前沙箱状态与环境的基础信息，例如沙箱 ID、运行状态、资源限制配置和可用工具列表等。
 
+
+### 可选的 Serper 兼容网页搜索
+
+在服务端环境设置 `SERPER_API_KEY`；`SERPER_BASE_URL` 默认为
+`https://google.serper.dev`。地址不要包含 `/search`，使用 POST 和 X-API-KEY 请求头。
+
+```yaml
+tools:
+  web_search:
+    engine: serper  # 或 engines: [serper, arxiv]
+    fetch_content: false
+    max_results: 5
+```
+
+引擎提供 `serper_search` 工具，网页搜索能力接口也可指定
+`engine_type='serper'`。YAML 可设置 `serper_api_key` 和
+`serper_base_url`；原有 `SEARCH_ENGINE` 配置及请求生成也支持
+`engine: serper`。默认值和其他引擎不变。查询将发送给外部服务，返回标题、
+网址和摘要，而非经过验证的论文元数据或完整页面。结果数量限制为 1–10。
+完整页面仍由独立的内容获取流程处理（`fetch_content: true`）。
+
 ### MCP工具
 
 支持传入外部MCP工具，只需要将mcp工具需要的配置写入字段即可，注意配置`mcp: true`。

@@ -137,6 +137,31 @@ tools:
 
 - **Sandbox mode**: Returns the current sandbox status and configuration summary (such as memory/CPU limits, available tools, etc.).
 
+### Optional Serper-Compatible Web Search
+
+Set `SERPER_API_KEY` in the server environment. `SERPER_BASE_URL`
+defaults to `https://google.serper.dev`.
+Use a base URL without `/search`; requests use POST and the X-API-KEY header.
+
+Support any Serper.dev-compatible endpoint (like litescrape.com, serpbase.dev, serpensapi.org, and others)
+
+```yaml
+tools:
+  web_search:
+    engine: serper  # or engines: [serper, arxiv]
+    fetch_content: false
+    max_results: 5
+```
+
+The engine exposes `serper_search` and can also be selected with
+`engine_type='serper'` in the web-search capability. YAML may override
+`serper_api_key` and `serper_base_url`. Legacy `SEARCH_ENGINE`
+configuration and request generation also support `engine: serper`.
+Defaults and other providers are unchanged. The optional provider sends
+queries to an external service and returns titles, URLs, and snippets, not
+verified scholarly metadata or full pages. Results are limited to 1–10.
+Existing page fetching remains separate (`fetch_content: true`).
+
 ### MCP Tools
 
 Supports passing external MCP tools, just write the configuration required by the mcp tool into the field, and make sure to configure `mcp: true`.
