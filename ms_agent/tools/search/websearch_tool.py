@@ -278,6 +278,10 @@ def get_search_engine_class(engine_type: str) -> Type[SearchEngine]:
     """
     engine_type = engine_type.lower().strip()
 
+    if engine_type == 'litescrape':
+        from ms_agent.tools.search.litescrape import LitescrapeSearch
+        return LitescrapeSearch
+
     if engine_type == 'exa':
         from ms_agent.tools.search.exa import ExaSearch
         return ExaSearch
@@ -313,6 +317,13 @@ def get_search_engine(engine_type: str,
             accepted to supply a key pool explicitly.
     """
     engine_type = engine_type.lower().strip()
+
+    if engine_type == 'litescrape':
+        from ms_agent.tools.search.litescrape import LitescrapeSearch
+        return LitescrapeSearch(
+            api_key=api_key,
+            base_url=kwargs.get('base_url'),
+            request_timeout=float(kwargs.get('request_timeout', 30.0)))
 
     if engine_type == 'exa':
         from ms_agent.tools.search.exa import ExaSearch
@@ -394,7 +405,7 @@ class WebSearchTool(ToolBase):
     SERVER_NAME = 'web_search'
 
     # Registry of supported search engines
-    SUPPORTED_ENGINES = ('exa', 'serpapi', 'arxiv', 'tavily')
+    SUPPORTED_ENGINES = ('exa', 'serpapi', 'arxiv', 'tavily', 'litescrape')
 
     # Process-wide (class-level) usage tracking for summarization calls.
     # This is intentionally separate from LLMAgent usage totals.
@@ -497,6 +508,9 @@ class WebSearchTool(ToolBase):
         # priority over the single-key fields. The value is forwarded as-is to
         # ExaSearch which handles parsing into a list internally.
         self._api_keys = {
+            'litescrape': (getattr(tool_cfg, 'litescrape_api_key', None)
+                           if tool_cfg else None)
+            or os.getenv('LITESCRAPE_API_KEY'),
             'exa': (
                 getattr(tool_cfg, 'exa_api_keys', None)
                 or getattr(tool_cfg, 'exa_api_key', None)
@@ -511,6 +525,10 @@ class WebSearchTool(ToolBase):
                        or os.getenv('TAVILY_API_KEY'))
             if tool_cfg else os.getenv('TAVILY_API_KEY'),
         }
+
+        self._litescrape_base_url = (
+            getattr(tool_cfg, 'litescrape_base_url', None)
+            if tool_cfg else None)
 
         # Tavily search defaults from optional `tavily:` sub-block in YAML
         self._tavily_defaults: Dict[str, Any] = {}
@@ -766,6 +784,11 @@ class WebSearchTool(ToolBase):
                     self._engines[engine_type] = engine_cls(
                         api_key=self._api_keys.get('tavily'),
                         request_timeout=self._tavily_request_timeout,
+                    )
+                elif engine_type == 'litescrape':
+                    self._engines[engine_type] = engine_cls(
+                        api_key=self._api_keys.get('litescrape'),
+                        base_url=self._litescrape_base_url,
                     )
                 else:  # arxiv
                     self._engines[engine_type] = engine_cls()

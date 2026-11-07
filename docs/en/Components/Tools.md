@@ -137,6 +137,29 @@ tools:
 
 - **Sandbox mode**: Returns the current sandbox status and configuration summary (such as memory/CPU limits, available tools, etc.).
 
+### Optional Native Litescrape Web Search
+
+Set `LITESCRAPE_API_KEY` in the server environment. `LITESCRAPE_BASE_URL`
+defaults to `https://api.litescrape.com`.
+The provider uses native `GET /api/google/search` with bearer authentication.
+
+```yaml
+tools:
+  web_search:
+    engine: litescrape  # or engines: [litescrape, arxiv]
+    fetch_content: false
+    max_results: 5
+```
+
+The engine exposes `litescrape_search` and can also be selected with
+`engine_type='litescrape'` in the web-search capability. YAML may override
+`litescrape_api_key` and `litescrape_base_url`. Legacy `SEARCH_ENGINE`
+configuration and request generation also support `engine: litescrape`.
+Defaults and other providers are unchanged. The optional provider sends
+queries to an external service and returns titles, URLs, and snippets, not
+verified scholarly metadata or full pages. Results are limited to 1–10.
+Existing page fetching remains separate (`fetch_content: true`).
+
 ### MCP Tools
 
 Supports passing external MCP tools, just write the configuration required by the mcp tool into the field, and make sure to configure `mcp: true`.

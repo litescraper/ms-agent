@@ -133,9 +133,9 @@ def get_web_search_tool(config_file: str):
     engine_override = ((local_env.get(SEARCH_ENGINE_OVERRIDE_ENV, '') or '')
                        or (os.getenv(SEARCH_ENGINE_OVERRIDE_ENV, '')
                            or '')).strip().lower()
-    if engine_override and engine_override in (SearchEngineType.EXA.value,
-                                               SearchEngineType.SERPAPI.value,
-                                               SearchEngineType.ARXIV.value):
+    if engine_override and engine_override in (
+            SearchEngineType.EXA.value, SearchEngineType.LITESCRAPE.value,
+            SearchEngineType.SERPAPI.value, SearchEngineType.ARXIV.value):
         search_config['engine'] = engine_override
 
     engine_name = (search_config.get('engine', '') or '').lower()
@@ -153,6 +153,13 @@ def get_web_search_tool(config_file: str):
             api_key=override_serp_key or search_config.get(
                 'serpapi_api_key', os.getenv('SERPAPI_API_KEY', None)),
             provider=search_config.get('provider', 'google').lower())
+    elif engine_name == SearchEngineType.LITESCRAPE.value:
+        from ms_agent.tools.search.litescrape import LitescrapeSearch
+        return LitescrapeSearch(
+            api_key=(local_env.get('LITESCRAPE_API_KEY')
+                     or search_config.get('litescrape_api_key')),
+            base_url=(local_env.get('LITESCRAPE_BASE_URL')
+                      or search_config.get('litescrape_base_url')))
     elif engine_name == SearchEngineType.ARXIV.value:
         return ArxivSearch()
     else:
